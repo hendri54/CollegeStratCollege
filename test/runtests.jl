@@ -8,6 +8,9 @@ using ModelObjectsLH
     include("logistic_test.jl");
     include("course_grid_test.jl");
     include("hproduction_test.jl");
+    include("h_shocks_test.jl");
+    include("learning_test.jl");
+    include("tuition_test.jl");
 end
 
 # ------------

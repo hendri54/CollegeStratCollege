@@ -201,7 +201,7 @@ function validate_grad_prob_grid(gr :: GradRule,
     end
     if !isValid
         println("\nGrad prob grid by (h, n):")
-        # ++++++ show_matrix(stdout, prob_hnM, 4);
+        show_matrix(stdout, prob_hnM, 4);
     end
     return isValid
 end

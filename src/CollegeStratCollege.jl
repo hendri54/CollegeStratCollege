@@ -5,18 +5,21 @@ module CollegeStratCollege
 # Probably better to keep one package?
 
 using DocStringExtensions, Lazy
-using CommonLH, StructLH, ModelObjectsLH, ModelParams
+using CommonLH, EconometricsLH, StructLH, ModelObjectsLH, ModelParams
 using CollegeStratBase
 
+# Elements that make up a College. Not interdependent.
 include("logistic.jl");
 include("dropout_rule.jl");
 include("grad_rule.jl");
 include("course_grid.jl");
 include("hprod.jl");
+include("h_shocks.jl");
 include("hprod_ben_porath.jl");
 include("hprod_ces.jl");
 include("hprod_bounded.jl");
-
+include("learning.jl");
+include("tuition_functions.jl");
 
 export GeneralizedLogistic, logistic
 
@@ -47,6 +50,25 @@ export n_colleges, cal_delta_h, cal_delta_h!, delta_h
 export time_exp, h_exp, same_exponents, same_exponents!, separate_exponents!
 export has_tfp, tfp, set_tfp
 export study_time_per_course, study_time_per_course_no_min
-export hprime, dh, h_path
+export hprime, dh, h_path, shock_prob, shock_probs, shock_probs_one_college
+
+export HcShockSwitches, HcShockSet, HcShock
+export HcShockSwitchesNone, HcShockSetNone, HcShockNone
+export HcShockSwitchesDown, HcShockSetDown, HcShockDown, make_hshock_switches_down, max_steps
+export has_h_shocks, value_before_h_shock, shock_probs, validate_hshocks
+export make_h_shock_set, make_h_shock, sim_h_shocks, pr_hprime
+export make_test_hshock_switches, make_test_hshock_set, make_test_hshock
+
+export AbstractLearnSwitches, AbstractLearningSet, AbstractLearning
+export LearnCollegeOnlySwitches, LearnCollegeOnlySet, LearnCollegeOnly
+export LearnTwoFourSwitches, LearnTwoFourSet, LearnTwoFour
+export init_learning_set, init_learning, make_test_learning
+export frac_h, h_stocks
+
+export AbstractTuitionSwitches, AbstractTuitionFunction
+export init_tuition_fct, tuition, validate_tf, make_test_tuition_function
+export TuitionByQualSwitches, TuitionByQual, test_tuition_by_qual, test_tuition_by_qual_switches
+export TuitionLinearSwitches, TuitionFunctionLinear, cal_gpa_gradient, cal_parental_gradient, cal_qual_base, cal_year_add_on!, quality_base, gpa_gradient, parental_gradient, year_add_on
+export test_tuition_linear_switches
 
 end # module
