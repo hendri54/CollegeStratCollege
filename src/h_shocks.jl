@@ -118,12 +118,13 @@ make_test_hshock_switches(; nColleges = 4, maxSteps = 2) =
     make_hshock_switches_down(nColleges, maxSteps);
 
 make_test_hshock_set(; nColleges = 4, maxSteps = 2) = 
-    make_h_shock_set(
+    make_h_shock_set(ObjectId(:test),
         make_test_hshock_switches(; nColleges = nColleges, maxSteps = maxSteps));
 
 make_test_hshock(; nColleges = 4, maxSteps = 2) = 
     make_h_shock(
-        make_test_hshock_set(; nColleges = nColleges, maxSteps = maxSteps));
+        make_test_hshock_set(; nColleges = nColleges, maxSteps = maxSteps),
+        nColleges - 1);
 
 
 # ------------

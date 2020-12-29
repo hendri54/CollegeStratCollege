@@ -57,11 +57,11 @@ end
 
 ## ----------- Logistic GradRule
 
-function make_test_gradrule(gs :: GradRuleSwitchesLogistic)
-    glf = GeneralizedLogistic();
-    return GradRuleLogistic(CollInt(4), Double(2.0), ncInt(20), glf,
-        use_hc_level(gs))
-end
+# function make_test_gradrule(gs :: GradRuleSwitchesLogistic)
+#     glf = GeneralizedLogistic();
+#     return GradRuleLogistic(CollInt(4), Double(2.0), ncInt(20), glf,
+#         use_hc_level(gs))
+# end
 
 
 function settings_table(gs :: GradRuleSwitchesLogistic)

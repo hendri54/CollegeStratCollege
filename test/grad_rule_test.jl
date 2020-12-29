@@ -9,7 +9,8 @@ function gradrule_main_test()
 		# test_header("GradRule Main")
 		rng = MersenneTwister(10);
 		for grSwitch in cs.grad_rule_test_switches()
-			g = cs.make_test_gradrule(grSwitch);
+			iCollege = 3;
+			g = cs.make_test_grad_rule(grSwitch, iCollege);
 
 			# Access functions
 			nMin = min_courses_to_grad(g, 4);
@@ -74,7 +75,8 @@ function gradrule_grid_test()
 	@testset "Grid" begin
 		# test_header("GradRule grid")
 		for grSwitch in cs.grad_rule_test_switches()
-			g = cs.make_test_gradrule(grSwitch);
+			iCollege = 3;
+			g = cs.make_test_grad_rule(grSwitch, iCollege);
 
 			t = t_first_grad(g) + 1;
 			hV = collect(range(0.1, 15.0, length = 14));
@@ -105,7 +107,7 @@ function gradrule_set_test()
 			gs = make_grad_rule_set(ObjectId(:gradRule), grSwitch);
 			cs.settings_table(gs)
 			nc = n_colleges(gs);
-			g = make_grad_rule(gs, nc-1);
+			g = cs.make_grad_rule(gs, nc-1);
 			@test isa(g, GradRule);
 
 			@test is_two_year(gs, 1)

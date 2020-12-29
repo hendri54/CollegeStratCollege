@@ -231,12 +231,12 @@ function make_grad_rule(gs :: GradRuleSetLinear, iCollege :: Integer)
     return g
 end
 
-function make_test_gradrule(switches :: GradRuleSwitchesLinear)
-    return GradRuleLinear(t_first_grad(switches, 3), Double(0.5), 
-        h_min(switches), Double(4.0), 
-        switches.gradProbMin, switches.gradProbMax, switches.minNcForGrad,
-        use_hc_level(switches))
-end
+# function make_test_grad_rule(switches :: GradRuleSwitchesLinear)
+#     return GradRuleLinear(t_first_grad(switches, 3), Double(0.5), 
+#         h_min(switches), Double(4.0), 
+#         switches.gradProbMin, switches.gradProbMax, switches.minNcForGrad,
+#         use_hc_level(switches))
+# end
 
 
 function validate_gr(g :: GradRuleLinear)

@@ -50,10 +50,10 @@ function set_hmin!(switches :: GradRuleSwitchesSimple, hMin :: Double) end
 
 ModelParams.has_pvector(gs :: GradRuleSetSimple) = false;
 
-function make_test_gradrule(gs :: GradRuleSwitchesSimple)
-    return GradRuleSimple(CollInt(4), 2.0, ncInt(20), 
-        grad_prob_min(gs), grad_prob_max(gs), use_hc_level(gs))
-end
+# function make_test_gradrule(gs :: GradRuleSwitchesSimple)
+#     return GradRuleSimple(CollInt(4), 2.0, ncInt(20), 
+#         grad_prob_min(gs), grad_prob_max(gs), use_hc_level(gs))
+# end
 
 
 """

@@ -11,6 +11,7 @@ using ModelObjectsLH
     include("h_shocks_test.jl");
     include("learning_test.jl");
     include("tuition_test.jl");
+    include("college_test.jl");
 end
 
 # ------------

@@ -19,14 +19,19 @@ include("grad_rule_linear.jl");
 include("grad_rule_logistic.jl");
 
 
-# For testing
+## --------  For testing
+
+make_test_grad_rule(switches :: GradRuleSwitches, iCollege :: Integer) = 
+	make_grad_rule(
+		make_grad_rule_set(ObjectId(:test), switches),
+		iCollege);
 
 function grad_rule_test_switches() 
-	return [GradRuleSwitchesSimple(),
+	return (GradRuleSwitchesSimple(),
 		GradRuleSwitchesLogistic(),
 		GradRuleSwitchesLinear(useHcLevel = true),
 		GradRuleSwitchesLinear(useHcLevel = true, byCollege = false),
-		GradRuleSwitchesLinear(useHcLevel = false, hMin = 0.2)]
+		GradRuleSwitchesLinear(useHcLevel = false, hMin = 0.2))
 end
 
 

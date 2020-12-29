@@ -32,7 +32,7 @@ StructLH.describe(switches :: TuitionByQualSwitches) = [
 test_tuition_by_qual_switches(nc) = 
     TuitionByQualSwitches(collect(range(1.0, 5.0, length = nc)));
 
-test_tuition_by_qual(nc) = TuitionByQual(
+make_test_tuition_by_qual(nc) = TuitionByQual(
     ObjectId(:test), test_tuition_by_qual_switches(nc)
     );
 
