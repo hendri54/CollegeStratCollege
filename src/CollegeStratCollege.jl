@@ -8,6 +8,8 @@ using DocStringExtensions, Lazy
 using CommonLH, EconometricsLH, StructLH, ModelObjectsLH, ModelParams
 using CollegeStratBase
 
+import CollegeStratBase: settings_table, settings_list
+
 # Elements that make up a College. Not interdependent.
 include("logistic.jl");
 include("dropout_rule.jl");
@@ -27,7 +29,7 @@ export GeneralizedLogistic, logistic
 export DropoutRule, DropoutRuleSet, DropoutRuleSwitches
 export DropoutRuleSimple, DropoutRuleSetSimple, DropoutRuleSwitchesSimple
 export make_dropout_set, validate_drop_set
-export make_drop_rule, college_duration, college_durations, drop_prob, drop_prob_grid, validate_drop_prob_grid, t_first_grad
+export make_dropout_rule, college_duration, college_durations, drop_prob, drop_prob_grid, validate_drop_prob_grid, t_first_grad
 
 export GradRule, GradRuleSet, GradRuleSwitches
 export GradRuleSimple, GradRuleSetSimple, GradRuleSwitchesSimple
@@ -73,7 +75,7 @@ export TuitionLinearSwitches, TuitionFunctionLinear, cal_gpa_gradient, cal_paren
 export test_tuition_linear_switches
 
 export College, make_test_college, validate_college
-export ed_drop, ed_grad, college_wage, max_n_tried
+export ed_drop, ed_grad, college_wage, max_n_tried, college_duration
 export study_time_grid, max_study_time, n_study_times, work_time_grid, n_work_times
 export work_start_ages, study_times_by_ns, median_tuition
 

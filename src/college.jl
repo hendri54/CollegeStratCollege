@@ -75,11 +75,11 @@ ed_drop(c :: College) = c.edDrop;
 ed_grad(c :: College) = c.edGrad;
 
 Lazy.@forward College.hcProd (
-    study_time_per_course
+    hprime, study_time_per_course
 )
 
 Lazy.@forward College.dropRule (
-    college_duration, drop_prob_grid
+    college_duration, drop_prob_grid, drop_prob
 );
 
 Lazy.@forward College.nGrid (
@@ -87,7 +87,7 @@ Lazy.@forward College.nGrid (
 );
 
 Lazy.@forward College.gradRule (
-    can_graduate, t_first_grad, grad_prob_grid
+    can_graduate, t_first_grad, grad_prob_grid, grad_prob
 )
 
 # college_duration(c :: College) = CollegeStratCollege.college_duration(c.dropRule);
@@ -188,7 +188,6 @@ function validate_college(c :: College)
         @warn "Minimum time requirement is high"
         isValid = false;
     end
-
     wage = college_wage(c);
     tuit = median_tuition(c; modelUnits = true);
     if (tuit > 10.0 * wage)

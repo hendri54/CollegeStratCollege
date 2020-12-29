@@ -1,7 +1,24 @@
 ## ----------  Generic
 
+"""
+	$(SIGNATURES)
+
+Specifies dropout rules for a set colleges.
+"""
 abstract type DropoutRuleSet <: ModelObject end
+
+"""
+	$(SIGNATURES)
+
+Switches used to construct a `DropoutRuleSet`.
+"""
 abstract type DropoutRuleSwitches end
+
+"""
+	$(SIGNATURES)
+
+Dropout rule for one college. Constructed from the `DropoutRuleSet`.
+"""
 abstract type DropoutRule end
 
 
@@ -39,6 +56,11 @@ college_duration(d :: DropoutRule) = d.tMustDrop;
 # Nobody is forced to drop out until last year in college.
 # Except for a small fraction for numerical reasons.
 
+"""
+	$(SIGNATURES)
+
+Switches for constructing a simple `DropoutRuleSet`.
+"""
 mutable struct DropoutRuleSwitchesSimple <: DropoutRuleSwitches
     "Students can stay at most this long in each college."
     tMaxV :: Vector{TimeInt}
@@ -47,11 +69,21 @@ mutable struct DropoutRuleSwitchesSimple <: DropoutRuleSwitches
     probMin :: Double
 end
 
+"""
+	$(SIGNATURES)
+
+Simple `DropoutRuleSet` where students must drop out after a fixed number of years in college.
+"""
 mutable struct DropoutRuleSetSimple <: DropoutRuleSet
     objId :: ObjectId
     switches :: DropoutRuleSwitchesSimple
 end
 
+"""
+	$(SIGNATURES)
+
+Simple `DroputRule`.
+"""
 struct DropoutRuleSimple <: DropoutRule
     # Must drop out (if not graduated) after this many years in college
     tMustDrop :: TimeInt
@@ -61,13 +93,20 @@ end
 
 ## ------------  Init
 
-default_dropout_switches(collegeS) = 
-    DropoutRuleSwitchesSimple(college_durations(collegeS), 0.01);
+"""
+	$(SIGNATURES)
 
+Construct a `DropoutRuleSet` from its switches.
+"""
 make_dropout_set(objId :: ObjectId,  switches :: DropoutRuleSwitchesSimple) = 
     DropoutRuleSetSimple(objId, switches);
 
-function make_drop_rule(ds :: DropoutRuleSetSimple, iCollege :: Integer)
+"""
+	$(SIGNATURES)
+
+Construct the `DropoutRule` for one college.
+"""
+function make_dropout_rule(ds :: DropoutRuleSetSimple, iCollege :: Integer)
     return DropoutRuleSimple(college_duration(ds, iCollege), ds.switches.probMin);
 end
 
@@ -110,7 +149,11 @@ function drop_prob(g :: DropoutRuleSimple, t :: Integer,
 end
 
 
-## Dropout probability on an [h, n] grid; at end of t
+"""
+	$(SIGNATURES)
+
+Dropout probability on an [h, n] grid; at end of t.
+"""
 function drop_prob_grid(g :: DropoutRuleSimple,  t :: Integer,  hV :: Vector{Double},
     nTakenV :: Vector{TI})  where  TI <: Integer
 

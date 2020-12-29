@@ -1,3 +1,5 @@
+using CollegeStratBase
+
 ## Dropout rule for one college
 function drop_main_test()
 	@testset "DropoutRule" begin
@@ -57,9 +59,9 @@ function drop_set_test()
 		switches = DropoutRuleSwitchesSimple([2, Tmax, Tmax], 0.04);
 		ds = make_dropout_set(ObjectId(:dropRule), switches);
 		show(stdout, ds);
-		tb = CollegeStratCollege.settings_table(ds);
+		tb = settings_table(ds);
 		iCollege = 2;
-		d = make_drop_rule(ds, iCollege);
+		d = make_dropout_rule(ds, iCollege);
 		@test isa(d, DropoutRule)
 	end
 end

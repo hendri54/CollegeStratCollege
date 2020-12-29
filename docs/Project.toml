@@ -1,5 +1,7 @@
 [deps]
+CollegeStratCollege = "54f0e08d-2c1f-4f05-829a-0c9e5bebf979"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+FilesLH = "69233b93-b644-4f5d-9b2e-8880c8b19068"
 
 [compat]
 Documenter = "~0.24"

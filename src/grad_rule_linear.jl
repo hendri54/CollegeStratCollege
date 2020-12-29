@@ -95,15 +95,15 @@ function settings_table(gs :: GradRuleSwitchesLinear)
     ]
 end
 
-# +++++ goes into CollegeStrat
-# function settings_list(gs :: GradRuleSwitchesLinear, st :: SymbolTable)
-#     nc = n_colleges(gs);
-#     tFirstGrad =  symbol_entry(st[:tGradMin], Int(t_first_grad(gs, nc)));
-#     minNcToGrad = symbol_entry(st[:nGrad], Int(min_courses_to_grad(gs, nc; modelUnits = false)));
-#     probGradMin = symbol_entry(st[:probGradMin], grad_prob_min(gs));
-#     probGradMax = symbol_entry(st[:probGradMax], grad_prob_max(gs));
-#     return [tFirstGrad, minNcToGrad, probGradMin, probGradMax]
-# end
+function settings_list(gs :: GradRuleSwitchesLinear, st)
+    nc = n_colleges(gs);
+    tFirstGrad =  symbol_entry(st, :tGradMin, Int(t_first_grad(gs, nc)));
+    minNcToGrad = symbol_entry(st, :nGrad, Int(min_courses_to_grad(gs, nc; modelUnits = false)));
+    probGradMin = symbol_entry(st, :probGradMin, grad_prob_min(gs));
+    probGradMax = symbol_entry(st, :probGradMax, grad_prob_max(gs));
+    return [tFirstGrad, minNcToGrad, probGradMin, probGradMax]
+end
+
 
 use_hc_level(switches :: GradRuleSwitchesLinear) =
     switches.useHcLevel;

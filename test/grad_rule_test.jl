@@ -1,4 +1,4 @@
-using Random, Test, CollegeStratCollege, ModelObjectsLH
+using Random, Test, CollegeStratBase, CollegeStratCollege, ModelObjectsLH
 
 cs = CollegeStratCollege;
 
@@ -6,9 +6,13 @@ cs = CollegeStratCollege;
 ## One college
 function gradrule_main_test()
 	@testset "GradRule Main" begin
+		symTb = symbol_table();
 		# test_header("GradRule Main")
 		rng = MersenneTwister(10);
 		for grSwitch in cs.grad_rule_test_switches()
+			# Not all grad rules have non-empty `settings_list`
+			sList = settings_list(grSwitch, symTb);
+			
 			iCollege = 3;
 			g = cs.make_test_grad_rule(grSwitch, iCollege);
 
@@ -105,7 +109,7 @@ function gradrule_set_test()
 		# test_header("GradRuleSet")
 		for grSwitch in cs.grad_rule_test_switches()
 			gs = make_grad_rule_set(ObjectId(:gradRule), grSwitch);
-			cs.settings_table(gs)
+			settings_table(gs)
 			nc = n_colleges(gs);
 			g = cs.make_grad_rule(gs, nc-1);
 			@test isa(g, GradRule);

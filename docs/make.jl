@@ -1,4 +1,6 @@
-using Documenter, CollegeStratCollege
+Pkg.activate("./docs");
+
+using Documenter, CollegeStratCollege, FilesLH
 
 makedocs(
     modules = [CollegeStratCollege],
@@ -11,7 +13,10 @@ makedocs(
     # checkdocs = :exports,
 )
 
-deploydocs(
-    repo = "github.com/hendri54/CollegeStratCollege.jl.git",
-    push_preview = true
-)
+pkgDir = rstrip(normpath(@__DIR__, ".."), '/');
+@assert endswith(pkgDir, "CollegeStratCollege")
+deploy_docs(pkgDir; trialRun = false);
+
+Pkg.activate(".");
+
+# ------------

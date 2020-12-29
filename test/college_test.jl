@@ -16,7 +16,7 @@ end
     @test size(sTimeM, 1) == n_n_tried(c, t)
     @test size(sTimeM, 2) == n_study_times(c)
 
-    @test median_tuition(c; modelUnits = false) > 1000.0
+    @test median_tuition(c; modelUnits = false) > 500.0
 end
 
 # ---------------
