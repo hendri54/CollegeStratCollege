@@ -26,8 +26,8 @@ mutable struct College
     wage :: Double
     # Tuition function
     tuitionFct :: AbstractTuitionFunction
-    # Tuition per year
-    # tuition :: Double
+    # Minimum net cost; including cost shifters. Model dollars
+    minNetCost :: Double
 end
 
 
@@ -70,6 +70,9 @@ end
 
 
 # ---------  Convenience methods: College
+
+# Model units
+min_net_cost(c :: College) = c.minNetCost;
 
 ed_drop(c :: College) = c.edDrop;
 ed_grad(c :: College) = c.edGrad;
@@ -162,9 +165,10 @@ function make_test_college(; nc = 4, twoYear :: Bool = false)
     dRule = DropoutRuleSimple(T, 0.03);
     wage = 2.5;
     tuition = make_test_tuition_by_qual(nc);
+    minNetCost = -1.0;
     c = College(1, :SC, :CG, 
         nGrid, hcProd, hcShock, learnS, workTimeV, studyTimeV, gRule, dRule,
-        wage, tuition);
+        wage, tuition, minNetCost);
     @assert validate_college(c)
     return c
 end
