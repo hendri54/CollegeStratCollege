@@ -46,6 +46,7 @@ Base.@kwdef mutable struct HcProdCesSwitches{T <: AbstractHCesAggr} <: AbstractH
     timeExp :: Double = 0.6
     calTimeExp :: Bool = true
     hExp :: Double = 0.6
+    hExpLb :: Double = -1.0
     calHExp :: Bool = false
     deltaH :: Double = 0.0
     calDeltaH :: Bool = false
@@ -252,7 +253,7 @@ function make_hc_prod_set(objId :: ObjectId, nc :: Integer,
     end
     # Allowing negative hExp for concavity.
     pHExp = Param(:hExp,  ldescription(:hHExp), lsymbol(:hHExp),  
-        hExp, hExp, -1.0, 0.9, calHExp);
+        hExp, hExp, switches.hExpLb, 0.9, calHExp);
 
     aScale = switches.aScale;
     pAScale = Param(:aScale,  ldescription(:hAScale), lsymbol(:hAScale), 

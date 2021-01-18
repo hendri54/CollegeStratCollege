@@ -1,7 +1,7 @@
 name = "CollegeStratCollege"
 uuid = "54f0e08d-2c1f-4f05-829a-0c9e5bebf979"
 authors = ["hendri54 <hendricksl@protonmail.com>"]
-version = "0.1.1"
+version = "0.1.2"
 
 [deps]
 CollegeStratBase = "bfa38a7c-6709-4380-90e8-18b172effef4"

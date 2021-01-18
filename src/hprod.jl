@@ -26,6 +26,9 @@ delta_h(h :: AbstractHcProdFct) = h.deltaH;
 time_exp(h :: AbstractHcProdSet) = h.timeExp;
 time_exp(h :: AbstractHcProdFct) = h.timeExp;
 h_exp(h :: AbstractHcProdFct) = h.hExp;
+set_hexp_lb!(switches :: AbstractHcProdSwitches, hExpLb :: Double) = 
+    switches.hExpLb = hExpLb;
+
 
 # Not defined for bounded case
 has_tfp(h :: AbstractHcProdFct) = true;

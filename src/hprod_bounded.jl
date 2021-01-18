@@ -38,6 +38,7 @@ Base.@kwdef mutable struct HcProdBoundedSwitches <: AbstractHcProdSwitches
     timeExp :: Double = 0.6
     calTimeExp :: Bool = true
     hExp :: Double = 0.9
+    hExpLb :: Double = 0.5
     calHExp :: Bool = true
     deltaH :: Double = 0.0
     calDeltaH :: Bool = false
@@ -104,7 +105,7 @@ function make_hc_prod_set(objId :: ObjectId, nc :: Integer,
     
     hExp = switches.hExp;
     pHExp = Param(:hExp, "Exponent on h-h0", lsymbol(:hHExp),  
-        hExp, hExp, 0.5, 1.5, switches.calHExp);
+        hExp, hExp, switches.hExpLb, 1.5, switches.calHExp);
 
     aScale = switches.aScale;
     pAScale = Param(:aScale, ldescription(:hAScale), lsymbol(:hAScale), 
