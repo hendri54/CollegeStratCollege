@@ -50,7 +50,7 @@ export HcProdCES, HcProdCesSwitches, HcProdCesSet, make_test_hc_ces_set
 export HcProdFctBounded, HcProdBoundedSwitches, HcProdBoundedSet, make_test_hc_bounded_set, make_test_hprod_bounded
 export make_hc_prod_set, make_h_prod, validate_hprod, validate_hprod_set
 export n_colleges, cal_delta_h, cal_delta_h!, delta_h
-export time_exp, h_exp, same_exponents, same_exponents!, separate_exponents!
+export time_exp, h_exp, set_hexp_lb!, same_exponents, same_exponents!, separate_exponents!
 export has_tfp, tfp, set_tfp
 export study_time_per_course, study_time_per_course_no_min
 export hprime, dh, h_path
