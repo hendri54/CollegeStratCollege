@@ -29,6 +29,12 @@ StructLH.describe(switches :: TuitionByQualSwitches) = [
     "Tuition values by college"  "$(switches.tuitionByQualV)"
 ]
 
+isfree(tf :: TuitionByQual, iCollege :: Integer) = 
+    tf.switches.tuitionByQualV[iCollege] == 0.0;
+
+make_free!(switches :: TuitionByQualSwitches, iCollege :: Integer) = 
+    switches.tuitionByQualV[iCollege] = 0.0;
+
 test_tuition_by_qual_switches(nc) = 
     TuitionByQualSwitches(collect(range(1.0, 5.0, length = nc)));
 

@@ -18,7 +18,7 @@ Base.@kwdef mutable struct GradRuleSwitchesLinear <: GradRuleSwitches
     n2Year :: ncInt = 1
     "Number of colleges"
     nColleges :: ncInt = 4
-    # Min and max grad prob when graduation is feasible
+    # Min and max grad prob when graduation is feasible. 
     gradProbMin :: Double = 0.05
     gradProbMax :: Double = 0.95
     # Grad prob depends on levels or gains

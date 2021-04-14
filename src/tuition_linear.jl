@@ -17,6 +17,9 @@ Base.@kwdef mutable struct TuitionLinearSwitches <: AbstractTuitionSwitches
     byYearV :: Vector{Double} = fill(0.0, 6)
     byYearFactor :: Double = 0.0
     calByYear :: Bool = false
+    # For experiments: specify which colleges are free
+    # Cannot be used with calibration (then qualBaseV no longer matters for free colleges)
+    freeIdxV :: Vector{CollInt} = Vector{CollInt}()
 end
 
 
@@ -66,11 +69,26 @@ parental_gradient(tf :: TuitionFunctionLinear) = tf.parentalGradient;
 year_add_on(tf :: TuitionFunctionLinear, t :: Integer) =
     tf.byYearFactor * tf.switches.byYearV[t];
 
+isfree(tf :: TuitionFunctionLinear, qual :: Integer) = 
+    isfree(tf.switches, qual);
+
+isfree(switches :: TuitionLinearSwitches, qual :: Integer) =     
+    qual ∈ switches.freeIdxV;
+
+function make_free!(switches :: TuitionLinearSwitches, iCollege :: Integer)
+    !isfree(switches, iCollege)  &&  push!(switches.freeIdxV, iCollege);
+end
+
+
 ## -----  Initialize
 
-test_tuition_linear_switches(nc :: Integer) = 
-    TuitionLinearSwitches(nColleges = nc, gpaGradient = 1.0,
-    parentalGradient = 2.0, qualBaseV = collect(LinRange(3.0, 5.0, nc)));
+test_tuition_linear_switches(nc :: Integer; freeIdxV = Vector{CollInt}()) = 
+    TuitionLinearSwitches(
+        nColleges = nc, 
+        gpaGradient = 1.0,
+        parentalGradient = 2.0, 
+        qualBaseV = collect(LinRange(3.0, 5.0, nc)),
+        freeIdxV = freeIdxV);
 
 
 # Initialize tuition function, taking coefficients from data regression.
@@ -154,9 +172,12 @@ function tuition(tf :: TuitionFunctionLinear, qual, gpa, parental, t :: Integer;
         @assert all_at_least(parental, 0.0)
     end
 
-    tuitionV = quality_base(tf, qual) .+ 
+    tuitionV = (
+        quality_base(tf, qual) .+ 
         gpa_gradient(tf) .* gpa .+
-        parental_gradient(tf) .* parental .+ year_add_on(tf, t);
+        parental_gradient(tf) .* parental .+ 
+        year_add_on(tf, t))  .* free_factor(tf, qual);
+    # tuitionV = zero_out_free_colleges(tf, tuitionV, qual);
     if !modelUnits
         tuitionV = dollars_model_to_data(tuitionV, :perYear);
     end

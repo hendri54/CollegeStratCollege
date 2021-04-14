@@ -69,7 +69,7 @@ export init_learning_set, init_learning, make_test_learning
 export frac_h, h_stocks
 
 export AbstractTuitionSwitches, AbstractTuitionFunction
-export init_tuition_fct, tuition, validate_tf, make_test_tuition_function
+export init_tuition_fct, tuition, make_free!, validate_tf, make_test_tuition_function
 export TuitionByQualSwitches, TuitionByQual, make_test_tuition_by_qual, test_tuition_by_qual_switches
 export TuitionLinearSwitches, TuitionFunctionLinear, cal_gpa_gradient, cal_parental_gradient, cal_qual_base, cal_year_add_on!, quality_base, gpa_gradient, parental_gradient, year_add_on
 export test_tuition_linear_switches
