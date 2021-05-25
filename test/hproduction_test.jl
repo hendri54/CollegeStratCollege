@@ -108,7 +108,10 @@ end
 	dh_ben_porath_test();
 	for hS ∈ [
 		cs.make_test_hc_prod_set(), 
-		cs.make_test_hc_bounded_set(),
+		cs.make_test_hc_bounded_set(learnRelativeToH0 = false),
+		cs.make_test_hc_bounded_set(learnRelativeToH0 = true),
+		cs.make_test_hc_bounded_set(learnRelativeToH0 = true, 
+			tfpSpec = :oneMinusLearnOverMaxLearn),
 		cs.make_test_hc_ces_set(cs.hCesAggrAhl),
 		cs.make_test_hc_ces_set(cs.hCesAggrA)
 		]

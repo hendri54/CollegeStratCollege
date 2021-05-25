@@ -9,6 +9,12 @@ Each college is endowed with `maxLearn`. Once a student has learned this much, l
 `dh = exp(aScale * a) * studyTime ^ timeExp * A`
 where
 `A = tfpBase * [maxLearn ^ hExp - h learned ^ hExp] ^ (1/hExp)`
+where
+`h learned = h - h0`.
+
+Option: `h learned = (h / h0 - 1)`. Then a college limits the percentage increase in the h endowment.
+
+Options should be type parameters +++
 
 A potential alternative with better scaling would be
 `A = hExp .* ( log(maxLearn) .- log.(max.(1.0, h learned)) )`
@@ -28,6 +34,10 @@ mutable struct HcProdFctBounded <: AbstractHcProdFct
     timePerCourse :: Double
     # Study time per course minimum (this is assigned when study time very low)
     minTimePerCourse :: Double
+    # Learning as percentage of endowment?
+    learnRelativeToH0 :: Bool
+    # TFP can be computed in several ways
+    tfpSpec :: Symbol
 end
 
 
@@ -47,6 +57,10 @@ Base.@kwdef mutable struct HcProdBoundedSwitches <: AbstractHcProdSwitches
     calDeltaH :: Bool = false
     aScale :: Double = 0.2
     calAScale :: Bool = true
+    # Learning as percentage of endowment?
+    learnRelativeToH0 :: Bool = false
+    # TFP from (max learning - learning)
+    tfpSpec :: Symbol = :maxLearnMinusLearn
 end
 
 
@@ -84,8 +98,15 @@ end
 
 max_learn(hs :: HcProdBoundedSet, ic) = ModelParams.values(hs.maxLearnV, ic);
 max_learn(h :: HcProdFctBounded) = h.maxLearn;
-has_tfp(h :: HcProdFctBounded) = false;
+has_tfp(h :: HcProdFctBounded) = false; # no longer true? ++++++
 
+learning_relative_to_h0(h :: HcProdFctBounded) = h.learnRelativeToH0;
+learning_relative_to_h0(h :: HcProdBoundedSwitches) = h.learnRelativeToH0;
+learning_relative_to_h0(h :: HcProdBoundedSet) = learning_relative_to_h0(h.switches);
+
+tfp_spec(h :: HcProdFctBounded) = h.tfpSpec;
+tfp_spec(h :: HcProdBoundedSwitches) = h.tfpSpec;
+tfp_spec(h :: HcProdBoundedSet) = tfp_spec(h.switches);
 
 ## ----------  Construction
 
@@ -97,7 +118,7 @@ function make_hc_prod_set(objId :: ObjectId, nc :: Integer,
     @assert validate_hprod(switches);
 
     pTimePerCourse = init_time_per_course();
-    pMaxLearn = init_max_learn(objId, nc);
+    pMaxLearn = init_max_learn(objId, switches, nc);
 
     tfpBase = switches.tfpBase;
     pTfpBase = Param(:tfpBase, ldescription(:hTfpNeutral), lsymbol(:hTfpNeutral),  
@@ -119,7 +140,7 @@ function make_hc_prod_set(objId :: ObjectId, nc :: Integer,
     pAScale = Param(:aScale, ldescription(:hAScale), lsymbol(:hAScale), 
         aScale, aScale, 0.02, 2.0, switches.calAScale);
 
-    pvec = ParamVector(objId,  [pTimeExp, pHExp, pDeltaH, pAScale, pTimePerCourse]);
+    pvec = ParamVector(objId,  [pTfpBase, pTimeExp, pHExp, pDeltaH, pAScale, pTimePerCourse]);
     # Min study time required per course. Should never bind.
     minTimePerCourse =
         hours_per_week_to_mtu(0.1 / data_to_model_courses(1));
@@ -132,18 +153,25 @@ function make_hc_prod_set(objId :: ObjectId, nc :: Integer,
     return h
 end
 
-function init_max_learn(objId :: ObjectId, nc :: Integer)
+# Upper bound should depend on whether learning is relative to h0.
+function init_max_learn(objId :: ObjectId, switches, nc :: Integer)
     ownId = make_child_id(objId, :tfpV);
 
     dMaxLearnV = fill(0.2, nc);
-    b = BoundedVector(ownId, ParamVector(ownId), true, 0.2, 5.0, dMaxLearnV);
+    if learning_relative_to_h0(switches)
+        ub = 3.0;
+    else
+        ub = 5.0;
+    end
+    b = BoundedVector(ownId, ParamVector(ownId), true, 0.2, ub, dMaxLearnV);
     set_pvector!(b; description = ldescription(:maxLearn), 
         symbol = lsymbol(:maxLearn));
     return b
 end
 
-make_test_hc_bounded_set() =
-    make_hc_prod_set(ObjectId(:HProd), 4, HcProdBoundedSwitches(deltaH = 0.05));
+make_test_hc_bounded_set(; learnRelativeToH0 = true, tfpSpec = :maxLearnMinusLearn) =
+    make_hc_prod_set(ObjectId(:HProd), 4, 
+        HcProdBoundedSwitches(deltaH = 0.05, learnRelativeToH0 = learnRelativeToH0));
 
 
 # Make h production function for one college
@@ -151,11 +179,13 @@ function make_h_prod(hs :: HcProdBoundedSet, iCollege :: Integer)
     return HcProdFctBounded(hs.tfpBase, max_learn(hs, iCollege), 
         time_exp(hs), h_exp(hs),
         delta_h(hs), hs.aScale,
-        hs.timePerCourse,  hs.minTimePerCourse);
+        hs.timePerCourse,  hs.minTimePerCourse,  
+        learning_relative_to_h0(hs), tfp_spec(hs));
 end
 
-make_test_hprod_bounded() = 
-    HcProdFctBounded(0.6, 3.1, 0.7, 1.2, 0.1, 0.3, 0.01, 0.005);
+make_test_hprod_bounded(; learnRelativeToH0 = true, tfpSpec = :maxLearnMinusLearn) = 
+    HcProdFctBounded(0.6, 3.1, 0.7, 1.2, 0.1, 0.3, 0.01, 0.005, 
+        learnRelativeToH0, tfpSpec);
 
 
 ## ----------  One college
@@ -179,10 +209,32 @@ H produced (before shock is realized). Nonnegative.
 """
 function dh(hS :: HcProdFctBounded, abilV,  hV, h0V, timeV, nTriedV)
     sTimeV = study_time_per_course(hS, timeV, nTriedV);
-    deltaHV = (max_learn(hS) ^ h_exp(hS) .- max.(0.0, hV .- h0V) .^ h_exp(hS));
-    tfpV = hS.tfpBase .* max.(0.0, deltaHV) .^ (1.0 / h_exp(hS));
-    return nTriedV .* tfpV .* (sTimeV .^ hS.timeExp) .*
+    # deltaHV = (max_learn(hS) ^ h_exp(hS) .- learned_h(hS, hV, h0V) .^ h_exp(hS));
+    # tfpV = hS.tfpBase .* max.(0.0, deltaHV) .^ (1.0 / h_exp(hS));
+    return nTriedV .* tfp(hS, hV, h0V) .* (sTimeV .^ hS.timeExp) .*
         exp.(hS.aScale .* abilV);
+end
+
+function tfp(hS :: HcProdFctBounded, hV, h0V)
+    if tfp_spec(hS) == :maxLearnMinusLearn
+        deltaHV = (max_learn(hS) ^ h_exp(hS) .- learned_h(hS, hV, h0V) .^ h_exp(hS));
+        tfpV = hS.tfpBase .* max.(0.0, deltaHV) .^ (1.0 / h_exp(hS));
+    elseif tfp_spec(hS) == :oneMinusLearnOverMaxLearn
+        tfpV = hS.tfpBase .* (1.0 .- (learned_h(hS, hV, h0V) ./ max_learn(hS)) .^ h_exp(hS));
+    else
+        error("Invalid $(tfp_spec(hS))");
+    end
+    return tfpV
+end
+
+# Learned h, scaled for the production function
+function learned_h(hS :: HcProdFctBounded, hV, h0V)
+    if learning_relative_to_h0(hS)
+        dh = max.(0.0, hV .- h0V) ./ h0V;
+    else
+        dh = max.(0.0, hV .- h0V);
+    end
+    return dh
 end
 
 
