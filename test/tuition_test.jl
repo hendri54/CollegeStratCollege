@@ -1,8 +1,9 @@
-using Test, CommonLH, CollegeStratCollege
+using Test, CommonLH, StructLH, CollegeStratCollege
 
 function tf_test(switches)
     tf = typeof(switches);
     @testset "Tuition function $tf" begin
+        StructLH.describe(switches)
         tf = init_tuition_fct(ObjectId(:test), switches);
         @test validate_tf(tf)
 

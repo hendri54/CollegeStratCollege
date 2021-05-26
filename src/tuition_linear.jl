@@ -50,7 +50,7 @@ function StructLH.describe(switches :: TuitionLinearSwitches)
     ypStr = calibrated_string(switches.calParentalGradient; 
         fixedValue = switches.parentalGradient);
     qualityStr = calibrated_string(switches.calQualBase; 
-        fixedValue = switches.calBaseV);
+        fixedValue = switches.qualBaseV);
     return [
         "Tuition "  "linear in quality, gpa, parental pct.";
         "GPA gradient calibrated "  gpaStr;
