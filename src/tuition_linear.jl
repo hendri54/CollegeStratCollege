@@ -44,12 +44,20 @@ mutable struct TuitionFunctionLinear{T1 <: AbstractFloat} <: AbstractTuitionFunc
 end
 
 
-StructLH.describe(switches :: TuitionLinearSwitches) = [
-    "Tuition "  "function of quality, gpa, parental pct.";
-    "GPA gradient calibrated "  "$(switches.calGpaGradient)";
-    "Parental gradient calibrated "  "$(switches.calParentalGradient)";
-    "Quality dummies calibrated"  "$(switches.calParentalGradient)"
-]
+function StructLH.describe(switches :: TuitionLinearSwitches)
+    gpaStr = calibrated_string(switches.calGpaGradient; 
+        fixedValue = switches.gpaGradient);
+    ypStr = calibrated_string(switches.calParentalGradient; 
+        fixedValue = switches.parentalGradient);
+    qualityStr = calibrated_string(switches.calQualBase; 
+        fixedValue = switches.calBaseV);
+    return [
+        "Tuition "  "linear in quality, gpa, parental pct.";
+        "GPA gradient calibrated "  gpaStr;
+        "Parental gradient calibrated "  ypStr;
+        "Quality dummies calibrated"  qualityStr
+    ]
+end
 
 
 ## -----   Convenience

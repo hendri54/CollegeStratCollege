@@ -258,7 +258,7 @@ end
 
 function settings_table(h :: HcProdBoundedSwitches)
     ddh = delta_h(h);
-    cal_delta_h(h)  ?  deprecStr = "fixed at $ddh"  :  deprecStr = "calibrated";
+    cal_delta_h(h)  ?  deprecStr = "calibrated"  :  deprecStr = "fixed at $ddh";
     return [
         "H production function" "Bounded learning";
         "Depreciation"  deprecStr
