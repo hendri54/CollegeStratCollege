@@ -1,9 +1,5 @@
 module CollegeStratCollege
 
-# Status: currently abandoned.
-# Making the College a package produces a very large list of exported objects and methods. Many of them need to be forwarded to bigger objects in CollegeStrat.
-# Probably better to keep one package?
-
 using DocStringExtensions, Lazy
 using CommonLH, EconometricsLH, StructLH, ModelObjectsLH, ModelParams
 using CollegeStratBase
@@ -15,6 +11,7 @@ include("logistic.jl");
 include("dropout_rule.jl");
 include("grad_rule.jl");
 include("course_grid.jl");
+include("study_time_grid.jl");
 include("hprod.jl");
 include("h_shocks.jl");
 include("hprod_ben_porath.jl");
@@ -74,9 +71,11 @@ export TuitionByQualSwitches, TuitionByQual, make_test_tuition_by_qual, test_tui
 export TuitionLinearSwitches, TuitionFunctionLinear, cal_gpa_gradient, cal_parental_gradient, cal_qual_base, cal_year_add_on!, quality_base, gpa_gradient, parental_gradient, year_add_on
 export test_tuition_linear_switches
 
+export StudyTimeGrid, stime_grid_per_course, max_study_time, n_study_times, study_time_grid, study_time_from_grid
+
 export College, make_test_college, validate_college
 export ed_drop, ed_grad, college_wage, max_n_tried, college_duration
-export study_time_grid, max_study_time, n_study_times, work_time_grid, n_work_times
-export work_start_ages, study_times_by_ns, median_tuition
+export work_time_grid, n_work_times, study_time_ns
+export work_start_ages, median_tuition
 
 end # module

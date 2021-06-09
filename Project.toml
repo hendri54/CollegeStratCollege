@@ -1,7 +1,7 @@
 name = "CollegeStratCollege"
 uuid = "54f0e08d-2c1f-4f05-829a-0c9e5bebf979"
 authors = ["hendri54 <hendricksl@protonmail.com>"]
-version = "0.3.3"
+version = "0.4"
 
 [deps]
 CollegeStratBase = "bfa38a7c-6709-4380-90e8-18b172effef4"
@@ -15,7 +15,7 @@ Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 StructLH = "10801879-faf9-5fee-b4da-d4f48ef6194b"
 
 [compat]
-julia = "^1"
+julia = "^1.5"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"

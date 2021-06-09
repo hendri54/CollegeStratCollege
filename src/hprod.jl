@@ -58,22 +58,37 @@ end
 
 same_exponents(h :: AbstractHcProdSwitches) = h.sameExponents;
 
+min_time_per_course(h :: AbstractHcProdFct) = h.minTimePerCourse;
 
 ## ----------  Generic methods
 
-## Study time per course
-function study_time_per_course(hS :: AbstractHcProdFct, sTimeV, nTriedV)
-    return max.(hS.minTimePerCourse,  study_time_per_course_no_min(hS, sTimeV, nTriedV))
+# Study time per course, from total study time.
+function study_time_per_course(hS :: AbstractHcProdFct, sTimeTotalV, nTriedV)
+    return max.(min_time_per_course(hS),  study_time_per_course_no_min(hS, sTimeTotalV, nTriedV))
 end
 
-study_time_per_course_no_min(hS :: AbstractHcProdFct, sTimeV, nTriedV) = 
-    sTimeV ./ nTriedV .- hS.timePerCourse;
+study_time_per_course_no_min(hS :: AbstractHcProdFct, sTimeTotalV, nTriedV) = 
+    sTimeTotalV ./ nTriedV .- hS.timePerCourse;
+
+# # Study time total, from study time per course.
+# function study_time_total(hS :: AbstractHcProdFct, sTimePerCourseV, nTriedV)
+#     sTimeV = (max.(min_time_per_course(hS), sTimePerCourseV) .+ hS.timePerCourse) .* nTriedV;
+#     return sTimeV
+# end
+
+# Study time per course from choice of study time per course (not taking out the fixed time per course).
+# function study_time_per_course_from_choice_per_course(hS :: AbstractHcProdFct, 
+#     sTimeV, nTriedV) 
+
+#     sTimePerCourseV = max.(hS.minTimePerCourse, sTimeV .- hS.timePerCourse);
+#     return sTimePerCourseV;
+# end
 
 
 """
 	$(SIGNATURES)
 
-h next period. h is restricted to never decline.
+h next period. h is restricted to never decline. Study time is total.
 """
 hprime(hS :: AbstractHcProdFct, abil, h, h0, sTime, nTried) = 
     max.(h, h .* (1.0 .- delta_h(hS)) .+ dh(hS, abil, h, h0, sTime, nTried));

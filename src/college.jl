@@ -1,14 +1,14 @@
 """
     College
 
-College object
+College object.
 """
-mutable struct College
+Base.@kwdef mutable struct College
     # College type (index into how data are presented)
     collType :: CollInt
     # Education level for dropouts and graduates
-    edDrop :: Symbol
-    edGrad :: Symbol
+    edDrop :: Symbol = :SC
+    edGrad :: Symbol = :CG
     # Grid for courses taken
     nGrid :: CourseGrid
     # H production function
@@ -18,8 +18,12 @@ mutable struct College
     learnS :: AbstractLearning
     # Admissible work times (in model time units)
     workTimeV :: Vector{Double}
-    # Admissible study times
-    studyTimeV :: Vector{Double}
+    sTimeGrid :: StudyTimeGrid
+    # # Admissible study times
+    # studyTimeV :: Vector{Double}
+    # # Are these study times per course or total?
+    # # If per course: the grid points INCLUDE fixed time per course.
+    # sTimeGridPerCourse :: Bool = false
     gradRule :: GradRule
     dropRule :: DropoutRule
     # Wage earned by students (per model time unit)
@@ -42,13 +46,14 @@ All formatted into strings.
 function settings_table(coll :: College)
     nV = Int.(n_tried_grid(coll, 1));
     workTimeV = round.(coll.workTimeV, digits = 2);
-    studyTimeV = round.(coll.studyTimeV, digits = 2);
+    # studyTimeV = round.(coll.studyTimeV, digits = 2);
+    # perCourseStr = stime_grid_per_course(c) ? " per course" : " total";
     tuit = format_number(median_tuition(coll; modelUnits = false));
     return [
         "College $(coll.collType)"  " ";
         "No of courses"  "$nV";
         "Work times"  "$workTimeV";
-        "Study times"  "$studyTimeV";
+        # "Study times"  "$studyTimeV" * perCourseStr;
         "Tuition"  tuit;
         "Wage"  "$(coll.wage)"
     ]
@@ -77,8 +82,12 @@ min_net_cost(c :: College) = c.minNetCost;
 ed_drop(c :: College) = c.edDrop;
 ed_grad(c :: College) = c.edGrad;
 
+Lazy.@forward College.sTimeGrid (
+    study_time_total, n_study_times, study_time_grid, max_study_time
+)
+
 Lazy.@forward College.hcProd (
-    hprime, study_time_per_course
+    hprime
 )
 
 Lazy.@forward College.dropRule (
@@ -93,12 +102,7 @@ Lazy.@forward College.gradRule (
     can_graduate, t_first_grad, grad_prob_grid, grad_prob
 )
 
-# college_duration(c :: College) = CollegeStratCollege.college_duration(c.dropRule);
 college_wage(c :: College) = c.wage;
-
-study_time_grid(c :: College) = c.studyTimeV;
-max_study_time(c :: College) = c.studyTimeV[end];
-n_study_times(c :: College) = length(c.studyTimeV);
 
 work_time_grid(c :: College) = c.workTimeV;
 n_work_times(c :: College) = length(c.workTimeV);
@@ -127,19 +131,30 @@ function work_start_ages(c :: College, edLevel :: Symbol)
     return ageV
 end
 
-# Study time per course for all choices of course loads and study times
-function study_times_by_ns(c :: College, t :: Integer)
-    sTimeV = study_time_grid(c);
-    nTriedV = n_tried_grid(c, t);
+# Study time PER COURSE for all choices of course loads and study times
+# function study_time_per_course_ns(c :: College, t :: Integer)
+#     # Iterate over rows first.
+#     nn = n_n_tried(c, t);
+#     ns = n_study_times(c);
+#     studyTime_nsM = zeros(nn, ns);
+#     for (i_n, nTried) in enumerate(n_tried_grid(c, t))
+#         studyTime_nsM[i_n, :] = stime_per_course_grid(c.studyTimeGrid, nTried))
+#     end
+#     return studyTime_nsM
+# end
 
-    ns = length(sTimeV);
-    nn = length(nTriedV);
+
+"""
+	$(SIGNATURES)
+
+Study times (total) on the (nTried, study times) grid.
+"""
+function study_time_ns(c :: College, t :: Integer)
+    nn = n_n_tried(c, t);
+    ns = n_study_times(c);
     studyTime_nsM = zeros(nn, ns);
-    for i_s = 1 : ns
-        for i_n = 1 : nn
-            studyTime_nsM[i_n, i_s] = 
-                study_time_per_course(c, sTimeV[i_s], nTriedV[i_n]);
-        end
+    for (i_n, nTried) in enumerate(n_tried_grid(c, t))
+        studyTime_nsM[i_n, :] = study_time_grid(c.sTimeGrid, nTried);
     end
     return studyTime_nsM
 end
@@ -151,14 +166,19 @@ median_tuition(c :: College; modelUnits :: Bool = false) =
 
 ## -------------  Testing
 
-function make_test_college(; nc = 4, twoYear :: Bool = false)
+function make_test_college(; 
+    nc = 4, 
+    twoYear :: Bool = false,
+    sTimeGridPerCourse :: Bool = false)
+
     twoYear  ?  (T = 2)  :  (T = 5);  
     nGrid = make_test_course_grid(T + 1);
     hcProd = make_test_hprod();
     hcShock = make_test_hshock();
     learnS = make_test_learning();
     workTimeV = collect(range(0.2, 0.4, length = T));
-    studyTimeV = collect(range(0.1, 0.3, length = T));
+    # studyTimeV = collect(range(0.1, 0.5, length = T));
+    sTimeGrid = make_test_study_time_grid(sTimeGridPerCourse);
     gRule = make_test_grad_rule(GradRuleSwitchesLinear(), nc - 1);
     # Must enforce consistency with max time in college
     # switches = DropoutRuleSwitchesSimple();
@@ -167,7 +187,8 @@ function make_test_college(; nc = 4, twoYear :: Bool = false)
     tuition = make_test_tuition_by_qual(nc);
     minNetCost = -1.0;
     c = College(1, :SC, :CG, 
-        nGrid, hcProd, hcShock, learnS, workTimeV, studyTimeV, gRule, dRule,
+        nGrid, hcProd, hcShock, learnS, workTimeV, 
+        sTimeGrid, gRule, dRule,
         wage, tuition, minNetCost);
     @assert validate_college(c)
     return c
@@ -187,7 +208,8 @@ function validate_college(c :: College)
     	isValid = false;
     end
     
-    minTime = c.studyTimeV[1] + c.workTimeV[1];
+    sTimeGridV = study_time_grid(c, 1);
+    minTime = sTimeGridV[1] + c.workTimeV[1];
     if minTime > 0.8
         @warn "Minimum time requirement is high"
         isValid = false;

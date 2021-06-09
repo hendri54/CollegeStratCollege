@@ -9,6 +9,12 @@ struct hCesAggrA <: AbstractHCesAggr end
 # Aggregate A_q and (a, h, l)
 struct hCesAggrAhl <: AbstractHCesAggr end
 
+description(::Type{hCesAggrA}) = "CES aggregator of TFP and ability";
+description(::Type{hCesAggrAhl}) = 
+    "CES aggregator of TFP and (ability, h, study time)";
+description(h :: T) where T <: AbstractHCesAggr = description(T); 
+
+
 """
     $(SIGNATURES)
 
@@ -31,9 +37,6 @@ mutable struct HcProdCES{T <: AbstractHCesAggr} <: AbstractHcProdFct
     timePerCourse :: Double
     # Study time per course minimum (this is assigned when study time very low)
     minTimePerCourse :: Double
-    # # Determines how to aggregate (see 2 versions of the CES)
-    # # Valid values are `:a` and `:ahl`
-    # aggrType :: Symbol
 end
 
 
@@ -54,7 +57,6 @@ Base.@kwdef mutable struct HcProdCesSwitches{T <: AbstractHCesAggr} <: AbstractH
     calAScale :: Bool = true
     substElast :: Double = 0.8
     calSubstElast :: Bool = true
-    # aggrType :: Symbol = :hla
 end
 
 
@@ -175,21 +177,24 @@ Base.show(io :: IO, hS :: HcProdCES) =
 
 ## ---------------------  For all colleges
 
-function settings_table(h :: HcProdCesSwitches)
+# Also used for `describe`.
+function settings_table(h :: HcProdCesSwitches{T}) where T
     same_exponents(h)  ?  expStr = "the same"  :  expStr = "different";
     ddh = delta_h(h);
     cal_delta_h(h)  ?  deprecStr = "fixed at $ddh"  :  deprecStr = "calibrated";
     return [
         "H production function" "CES";
+        "Productivity"  description(T);
         "Exponents on time and h"  expStr;
         "Depreciation"  deprecStr
     ]
 end
 
-function StructLH.describe(h :: HcProdCesSet)
+function StructLH.describe(h :: HcProdCesSet{T}) where T
     tfpString = format_vector("",  [tfp(h, ic)  for  ic = 1 : n_colleges(h)], 1);
     return [
         "H production function"  "CES";
+        "Productivity"  description(T);
         "TFP by college"  tfpString
     ]
 end

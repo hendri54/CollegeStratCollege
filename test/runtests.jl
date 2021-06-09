@@ -7,6 +7,7 @@ using ModelObjectsLH
     include("grad_rule_test.jl");
     include("logistic_test.jl");
     include("course_grid_test.jl");
+    include("study_time_grid_test.jl");
     include("hproduction_test.jl");
     include("h_shocks_test.jl");
     include("learning_test.jl");
