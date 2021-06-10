@@ -18,6 +18,34 @@ function hprod_main_test(hS ::cs.AbstractHcProdFct)
 end
 
 
+function tfp_test(learnRelativeToH0 :: Bool, tfpSpec :: AbstractTfpSpec)
+	@testset "TFP $learnRelativeToH0, $tfpSpec" begin
+		hS = cs.make_test_hprod_bounded(
+			learnRelativeToH0 = learnRelativeToH0, tfpSpec = tfpSpec);
+		
+		# Set h values so that learning is either 0 or maxLearn
+		h0V = [2.1, 3.4];
+		maxLearn = cs.max_learn(hS);
+		if learnRelativeToH0
+			h2 = h0V[2] * (1.0 + maxLearn);
+		else
+			h2 = h0V[2] + maxLearn;
+		end
+		hV = [h0V[1], h2];
+
+		learnV = cs.learned_h(hS, hV, h0V);
+		@test learnV[1] ≈ 0.0;
+		@test learnV[2] ≈ maxLearn;
+		
+		tfpV = cs.base_tfp(hS, hV, h0V);
+		tfpRange = cs.tfp_range(hS);
+		@test all(tfpV .> tfpRange[1] .- 1e-6);
+		@test all(tfpV .<= tfpRange[2] .+ 1e-6);
+		@test all(tfpV .>= 0.0);
+	end
+end
+
+
 function hprod_dh_test(hS ::cs.AbstractHcProdFct)
 	@testset "dh $hS" begin
 		nc = 4;
@@ -94,6 +122,12 @@ end
 
 
 @testset "H production" begin
+	for tfpSpec in cs.tfp_spec_list()
+		for learnRelativeToH0 in (true, false)
+			tfp_test(learnRelativeToH0, tfpSpec);
+		end
+	end
+
 	for h ∈ [
 		cs.make_test_hprod(), 
 		cs.make_test_hprod_bounded(),
@@ -111,7 +145,7 @@ end
 		cs.make_test_hc_bounded_set(learnRelativeToH0 = false),
 		cs.make_test_hc_bounded_set(learnRelativeToH0 = true),
 		cs.make_test_hc_bounded_set(learnRelativeToH0 = true, 
-			tfpSpec = :oneMinusLearnOverMaxLearn),
+			tfpSpec = cs.TfpOneMinusLearnOverMaxLearn()),
 		cs.make_test_hc_ces_set(cs.hCesAggrAhl),
 		cs.make_test_hc_ces_set(cs.hCesAggrA)
 		]

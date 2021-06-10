@@ -4,15 +4,15 @@
     $(SIGNATURES)
 
 For a single college (not a ModelObject).
-Each college is endowed with `maxLearn`. Once a student has learned this much, learning productivity falls to 0.
+Each college is endowed with `maxLearn`. Once a student has learned this much, learning productivity falls to 0 (or a constant).
 
 `dh = exp(aScale * a) * studyTime ^ timeExp * A`
-where
-`A = tfp * [maxLearn ^ hExp - h learned ^ hExp] ^ (1/hExp)`
-where
-`h learned = h - h0`.
 
-Option: `h learned = (h / h0 - 1)`. Then a college limits the percentage increase in the h endowment.
+The functional form for `A` is governed by the `tfpSpec`. It depends on how much has been learned. 
+
+The way learning is defined is governed by `learnRelativeToH0`.
+- false: `h learned = h - h0`
+- true: `h learned = (h / h0 - 1)`. Then a college limits the percentage increase in the h endowment.
 
 Options should be type parameters +++
 
@@ -34,10 +34,10 @@ mutable struct HcProdFctBounded <: AbstractHcProdFct
     timePerCourse :: Double
     # Study time per course minimum (this is assigned when study time very low)
     minTimePerCourse :: Double
-    # Learning as percentage of endowment?
+    # Learning as percentage of endowment? Or as (h - h0).
     learnRelativeToH0 :: Bool
-    # TFP can be computed in several ways
-    tfpSpec :: Symbol
+    # TFP can be computed in several ways. See `base_tfp`.
+    tfpSpec :: AbstractTfpSpec
 end
 
 
@@ -51,7 +51,7 @@ Base.@kwdef mutable struct HcProdBoundedSwitches <: AbstractHcProdSwitches
     timeExp :: Double = 0.6
     calTimeExp :: Bool = true
     hExp :: Double = 0.9
-    hExpLb :: Double = 0.5
+    # hExpLb :: Double = 0.5
     calHExp :: Bool = true
     deltaH :: Double = 0.0
     calDeltaH :: Bool = false
@@ -60,7 +60,7 @@ Base.@kwdef mutable struct HcProdBoundedSwitches <: AbstractHcProdSwitches
     # Learning as percentage of endowment?
     learnRelativeToH0 :: Bool = false
     # TFP from (max learning - learning)
-    tfpSpec :: Symbol = :maxLearnMinusLearn
+    tfpSpec :: AbstractTfpSpec = TfpMaxLearnMinusLearn()
 end
 
 
@@ -131,13 +131,15 @@ function make_hc_prod_set(objId :: ObjectId, nc :: Integer,
     pDeltaH = Param(:deltaH, ldescription(:ddh), lsymbol(:ddh), 
         deltaH, deltaH, 0.0, 0.5, cal_delta_h(switches));
     
+    # Governs slope inside of TFP (should be inside of TFP spec +++)
     hExp = switches.hExp;
-    pHExp = Param(:hExp, "Exponent on h-h0", lsymbol(:hHExp),  
-        hExp, hExp, switches.hExpLb, 1.5, switches.calHExp);
+    pHExp = Param(:hExp, "TFP slope coefficient", lsymbol(:hHExp),  
+        hExp, hExp, gma_range(tfp_spec(switches))..., switches.calHExp);
 
     aScale = switches.aScale;
+    tfpSpec = tfp_spec(switches);
     pAScale = Param(:aScale, ldescription(:hAScale), lsymbol(:hAScale), 
-        aScale, aScale, 0.02, 2.0, switches.calAScale);
+        aScale, aScale, gma_range(tfpSpec)..., switches.calAScale);
 
     pvec = ParamVector(objId,  [pTfpBase, pTimeExp, pHExp, pDeltaH, pAScale, pTimePerCourse]);
     # Min study time required per course. Should never bind.
@@ -168,9 +170,14 @@ function init_max_learn(objId :: ObjectId, switches, nc :: Integer)
     return b
 end
 
-make_test_hc_bounded_set(; learnRelativeToH0 = true, tfpSpec = :maxLearnMinusLearn) =
+make_test_hc_bounded_set(; learnRelativeToH0 = true, 
+    tfpSpec = TfpMaxLearnMinusLearn()) =
     make_hc_prod_set(ObjectId(:HProd), 4, 
-        HcProdBoundedSwitches(deltaH = 0.05, learnRelativeToH0 = learnRelativeToH0));
+        HcProdBoundedSwitches(
+            deltaH = 0.05, 
+            learnRelativeToH0 = learnRelativeToH0,
+            tfpSpec = tfpSpec
+            ));
 
 
 # Make h production function for one college
@@ -182,15 +189,23 @@ function make_h_prod(hs :: HcProdBoundedSet, iCollege :: Integer)
         learning_relative_to_h0(hs), tfp_spec(hs));
 end
 
-make_test_hprod_bounded(; learnRelativeToH0 = true, tfpSpec = :maxLearnMinusLearn) = 
-    HcProdFctBounded(0.6, 3.1, 0.7, 1.2, 0.1, 0.3, 0.01, 0.005, 
-        learnRelativeToH0, tfpSpec);
+function make_test_hprod_bounded(; 
+    learnRelativeToH0 = true, tfpSpec = TfpMaxLearnMinusLearn())
 
+    gma = sum(gma_range(tfpSpec)) / 2;
+    hS = HcProdFctBounded(0.6, 3.1, 0.7, gma, 0.1, 0.3, 0.01, 0.005, 
+        learnRelativeToH0, tfpSpec);
+    @assert validate_hprod(hS);
+    return hS
+end
 
 ## ----------  One college
 
 function validate_hprod(hS :: HcProdFctBounded)
     isValid = (max_learn(hS) > 0.05)  &&  (0.0 < time_exp(hS) ≤ 1.0);
+    gmaMin, gmaMax = gma_range(tfp_spec(hS));
+    gma = h_exp(hS);
+    isValid = isValid  &&  (gmaMin <= gma <= gmaMax);
     return isValid
 end
 
@@ -214,16 +229,20 @@ function dh(hS :: HcProdFctBounded, abilV,  hV, h0V, timeV, nTriedV)
         exp.(hS.aScale .* abilV);
 end
 
+## ----------  TFP specs
+
+# Base TFP: the term in front of (sTime ^ beta * exp(ability))
 function base_tfp(hS :: HcProdFctBounded, hV, h0V)
-    if tfp_spec(hS) == :maxLearnMinusLearn
-        deltaHV = (max_learn(hS) ^ h_exp(hS) .- learned_h(hS, hV, h0V) .^ h_exp(hS));
-        tfpV = hS.tfp .* max.(0.0, deltaHV) .^ (1.0 / h_exp(hS));
-    elseif tfp_spec(hS) == :oneMinusLearnOverMaxLearn
-        tfpV = hS.tfp .* (1.0 .- (learned_h(hS, hV, h0V) ./ max_learn(hS)) .^ h_exp(hS));
-    else
-        error("Invalid $(tfp_spec(hS))");
-    end
+    tfpSpec = tfp_spec(hS);
+    learnV = learned_h(hS, hV, h0V);
+    tfpV = hS.tfp .* tfp(tfpSpec, learnV, max_learn(hS), h_exp(hS));
     return tfpV
+end
+
+
+# Expected range of TFP
+function tfp_range(hS :: HcProdFctBounded)
+    return tfp(hS) .* tfp_range(tfp_spec(hS), h_exp(hS), max_learn(hS));
 end
 
 # Learned h, scaled for the production function
@@ -258,10 +277,13 @@ end
 function settings_table(h :: HcProdBoundedSwitches)
     ddh = delta_h(h);
     cal_delta_h(h)  ?  deprecStr = "calibrated"  :  deprecStr = "fixed at $ddh";
-    return [
+    h.learnRelativeToH0  ?  learnStr = "h/h0 - 1"  :  learnStr = "h - h0";
+    ownSettings = [
         "H production function" "Bounded learning";
         "Depreciation"  deprecStr
-    ]
+        "Learning of the form"  learnStr
+        ];
+    return vcat(ownSettings, settings_table(h.tfpSpec))
 end
 
 function settings_list(h :: HcProdBoundedSwitches, st)
