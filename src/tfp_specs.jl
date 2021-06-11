@@ -5,7 +5,7 @@ abstract type AbstractTfpSpec end
 # A0 * (maxLearn ^ gma - learn ^ gma) ^ (1/gma)
 # Bounded in (0, A0)
 struct TfpMaxLearnMinusLearn <: AbstractTfpSpec end
-# TFP: A0 * (1 - gamma * (learn / maxLearn))
+# TFP: A0 * (1 - (learn / maxLearn) ^ gma)
 # Bounded in (0, A0)
 struct TfpOneMinusLearnOverMaxLearn <: AbstractTfpSpec end
 # TFP: A0 * (1 - gamma +  gamma * (1 - learn / maxLearn))
@@ -23,7 +23,7 @@ settings_table(tfpS :: AbstractTfpSpec) = [
 tfp_equation(tfpS :: TfpMaxLearnMinusLearn) = 
     "A0 * (maxLearn ^ gma - learn ^ gma) ^ (1/gma)";
 tfp_equation(tfpS :: TfpOneMinusLearnOverMaxLearn) = 
-    "A0 * (1 - gamma * (learn / maxLearn))";
+    "A0 * (1 - (learn / maxLearn) ^ gma)";
 tfp_equation(tfpS :: TfpLearnOverMaxLearnBounded) = 
     "A0 * (1 - gamma +  gamma * (1 - learn / maxLearn))";
 
@@ -34,7 +34,7 @@ tfp_range(tfpS :: TfpLearnOverMaxLearnBounded, gma, maxLearn) = (1.0 - gma, 1.0)
 
 # Permitted range of slope coefficient
 gma_range(tfpS :: TfpMaxLearnMinusLearn) = (0.2, 2.0);
-gma_range(tfpS :: TfpOneMinusLearnOverMaxLearn) = (0.05, 0.95);
+gma_range(tfpS :: TfpOneMinusLearnOverMaxLearn) = (0.05, 2.0);
 gma_range(tfpS :: TfpLearnOverMaxLearnBounded) = (0.05, 0.95);
 
 
