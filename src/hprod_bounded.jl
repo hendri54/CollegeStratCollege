@@ -21,6 +21,7 @@ A potential alternative with better scaling would be
 `hExp` governs the slope. `maxLearn` governs the intercept. But the shape is fixed.
 """
 mutable struct HcProdFctBounded <: AbstractHcProdFct
+    minTfp :: Double  # Additive minimum tfp
     tfp :: Double
     maxLearn  ::  Double
     timeExp  ::  Double
@@ -45,6 +46,8 @@ end
 
 Base.@kwdef mutable struct HcProdBoundedSwitches <: AbstractHcProdSwitches
     # Same exponents on time and h. If yes, ignore `hExp`.
+    minTfp :: Double = 1.0
+    calMinTfp :: Bool = true
     tfp :: Double = 1.0
     calTfpBase :: Bool = true
     sameExponents :: Bool = true
@@ -77,6 +80,7 @@ mutable struct HcProdBoundedSet <: AbstractHcProdSet
     nc :: CollInt
 
     # Calibrated parameters
+    minTfp :: Double
     tfp :: Double  
     maxLearnV  ::  BoundedVector
     timeExp  ::  Double
@@ -119,6 +123,10 @@ function make_hc_prod_set(objId :: ObjectId, nc :: Integer,
     pTimePerCourse = init_time_per_course();
     pMaxLearn = init_max_learn(objId, switches, nc);
 
+    minTfp = switches.minTfp;
+    pMinTfp = Param(:minTfp, "Min tfp", "A_{min}", 
+        minTfp, minTfp, 0.0, 2.0, switches.calMinTfp);
+
     tfpBase = switches.tfp;
     pTfpBase = Param(:tfp, ldescription(:hTfpNeutral), lsymbol(:hTfpNeutral),  
         tfpBase, tfpBase, 0.1, 2.0, switches.calTfpBase); 
@@ -141,13 +149,13 @@ function make_hc_prod_set(objId :: ObjectId, nc :: Integer,
     pAScale = Param(:aScale, ldescription(:hAScale), lsymbol(:hAScale), 
         aScale, aScale, gma_range(tfpSpec)..., switches.calAScale);
 
-    pvec = ParamVector(objId,  [pTfpBase, pTimeExp, pHExp, pDeltaH, pAScale, pTimePerCourse]);
+    pvec = ParamVector(objId,  [pMinTfp, pTfpBase, pTimeExp, pHExp, pDeltaH, pAScale, pTimePerCourse]);
     # Min study time required per course. Should never bind.
     minTimePerCourse =
         hours_per_week_to_mtu(0.1 / data_to_model_courses(1));
 
     h = HcProdBoundedSet(objId, switches, nc, 
-        tfpBase, pMaxLearn,
+        minTfp, tfpBase, pMaxLearn,
         timeExp, hExp, deltaH, aScale,
         pTimePerCourse.value, minTimePerCourse, pvec);
     @assert validate_hprod_set(h)
@@ -182,7 +190,8 @@ make_test_hc_bounded_set(; learnRelativeToH0 = true,
 
 # Make h production function for one college
 function make_h_prod(hs :: HcProdBoundedSet, iCollege :: Integer)
-    return HcProdFctBounded(hs.tfp, max_learn(hs, iCollege), 
+    return HcProdFctBounded(hs.minTfp, hs.tfp, 
+        max_learn(hs, iCollege), 
         time_exp(hs), h_exp(hs),
         delta_h(hs), hs.aScale,
         hs.timePerCourse,  hs.minTimePerCourse,  
@@ -192,8 +201,9 @@ end
 function make_test_hprod_bounded(; 
     learnRelativeToH0 = true, tfpSpec = TfpMaxLearnMinusLearn())
 
+    minTfp = 0.7;
     gma = sum(gma_range(tfpSpec)) / 2;
-    hS = HcProdFctBounded(0.6, 3.1, 0.7, gma, 0.1, 0.3, 0.01, 0.005, 
+    hS = HcProdFctBounded(minTfp, 0.6, 3.1, 0.7, gma, 0.1, 0.3, 0.01, 0.005, 
         learnRelativeToH0, tfpSpec);
     @assert validate_hprod(hS);
     return hS
@@ -235,14 +245,15 @@ end
 function base_tfp(hS :: HcProdFctBounded, hV, h0V)
     tfpSpec = tfp_spec(hS);
     learnV = learned_h(hS, hV, h0V);
-    tfpV = hS.tfp .* tfp(tfpSpec, learnV, max_learn(hS), h_exp(hS));
+    tfpV = hS.minTfp .+ hS.tfp .* tfp(tfpSpec, learnV, max_learn(hS), h_exp(hS));
     return tfpV
 end
 
 
 # Expected range of TFP
 function tfp_range(hS :: HcProdFctBounded)
-    return tfp(hS) .* tfp_range(tfp_spec(hS), h_exp(hS), max_learn(hS));
+    return hS.minTfp .+ tfp(hS) .* 
+        tfp_range(tfp_spec(hS), h_exp(hS), max_learn(hS));
 end
 
 # Learned h, scaled for the production function

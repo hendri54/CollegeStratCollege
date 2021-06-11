@@ -42,7 +42,7 @@ export make_course_grid, make_ncompleted_grid, make_test_course_grid
 export ncompleted_to_indices, update_ncourses
 
 # H production
-export AbstractTfpSpec, TfpMaxLearnMinusLearn, TfpLearnOverMaxLearnBounded, TfpOneMinusLearnOverMaxLearn
+export AbstractTfpSpec, TfpMaxLearnMinusLearn, TfpLearnOverMaxLearnBounded, TfpOneMinusLearnOverMaxLearn, TfpBounded4
 export AbstractHcProdSwitches, AbstractHcProdSet, AbstractHcProdFct
 export HcProdFct, HcProdSwitches, HcProdFctSet
 export AbstractHCesAggr, hCesAggrA, hCesAggrAhl
