@@ -225,7 +225,7 @@ function init_hgrad(objId :: ObjectId, switches :: GradRuleSwitches)
         dhGradV, dhGradV, Double(0.1) .* dhGradV, ubV, true);
 
     ownId = make_child_id(objId, :hGradV);
-    pvec = ParamVector(objId = ownId,  pv = [phGrad0, pdhGradV]);
+    pvec = ParamVector(ownId,  [phGrad0, pdhGradV]);
     return IncreasingVector(ownId, pvec, hGrad0, dhGradV)
 end
 

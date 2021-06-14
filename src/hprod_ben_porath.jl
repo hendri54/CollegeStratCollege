@@ -202,7 +202,7 @@ function init_tfp(objId :: ObjectId, nc :: Integer)
         dTfpV, dTfpV, dTfpV .* 0.1, dTfpV .* 10, true);
 
     ownId = make_child_id(objId, :tfpV);
-    pvec = ParamVector(objId = ownId,  pv = [pTfp0, pTfpGrad]);
+    pvec = ParamVector(ownId,  [pTfp0, pTfpGrad]);
     return IncreasingVector(ownId, pvec,  tfp0, dTfpV)
 end
 
