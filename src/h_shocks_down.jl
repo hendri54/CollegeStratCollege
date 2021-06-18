@@ -129,7 +129,7 @@ function init_shock_probs(objId :: ObjectId, switches :: HcShockSwitchesDown)
     nc = n_colleges(switches);
     dxV = fill(0.2, nc);
     pProb = BoundedVector{Double}(objId, ParamVector(objId), 
-        false, 0.01, 0.5, dxV);
+        :decreasing, 0.01, 0.5, dxV);
     set_pvector!(pProb; description = ldescription(:hShockGrad),
         symbol = lsymbol(:hShockGrad), isCalibrated = true);
     return pProb

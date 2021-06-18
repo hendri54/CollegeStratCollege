@@ -117,9 +117,14 @@ function init_h_depreciation(switches :: AbstractHcProdSwitches)
     return pDeltaH
 end
 
+# Fixed time per course that gets subtracted from study time
+# Study time per course = study time / nCourses - fixed time per course.
 function init_time_per_course()
     # Bounds are arbitrary
     mCourses = data_to_model_courses(1);
+    # Time endowment: about 120 hours per week.
+    # Normal load: 10 courses per year (5 courses at a time).
+    # 1 hour per course => 5 hours per week => 5/120 of time endowment.
     timePerCourseLb = hours_per_week_to_mtu(0.1 / mCourses);
     timePerCourseUb = hours_per_week_to_mtu(2.0 / mCourses);
     timePerCourse = hours_per_week_to_mtu(0.2 / mCourses);

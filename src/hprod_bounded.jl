@@ -172,7 +172,7 @@ function init_max_learn(objId :: ObjectId, switches, nc :: Integer)
     else
         ub = 5.0;
     end
-    b = BoundedVector(ownId, ParamVector(ownId), true, 0.2, ub, dMaxLearnV);
+    b = BoundedVector(ownId, ParamVector(ownId), :increasing, 0.2, ub, dMaxLearnV);
     set_pvector!(b; description = ldescription(:maxLearn), 
         symbol = lsymbol(:maxLearn));
     return b

@@ -187,8 +187,13 @@ function init_prob_hmin(parentId :: ObjectId,
     # The Bool argument implies a decreasing vector
     pMax = grSwitches.gradProbMax - 0.05;
     # The Bool argument means that better colleges are harder or easier
+    if grSwitches.betterHarder
+        slope = :decreasing;
+    else
+        slope = :increasing;  # should be :nonmonotone ++++++
+    end
     p = BoundedVector(objId, ParamVector(objId), 
-        !grSwitches.betterHarder,
+        slope,
         zero(Double), pMax, 
         fill(Double(0.5), nc));
     set_pvector!(p; description = ldescription(:probHminV), 
