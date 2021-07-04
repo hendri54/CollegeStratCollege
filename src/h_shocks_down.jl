@@ -215,16 +215,16 @@ Simulate h shocks. Returns `h` next period, given `h` at the end of this period 
 
 # Arguments
 - `dh`: shock object
-- `uniRandM`: uniform random numbers
-- `hIdxM`: h indices at end of period
+- `hEndIdxM`: h indices at end of period
 """
-function sim_h_shocks(dh :: HcShockDown, uniRandM :: Array{Double}, hIdxM :: Array{T1}) where T1 <: Integer
+function sim_h_shocks(dh :: HcShockDown, hStartM, hEndIdxM :: Array{T1},
+    hGridNextV, rng :: AbstractRNG) where T1 <: Integer
 
-    hOutM = copy(hIdxM);
+    hOutM = copy(hEndIdxM);
     maxSteps = max_steps(dh);
     for nSteps = one(T1) : T1(maxSteps)
         # Step one down, but not below index 1
-        hOutM[(uniRandM .< shock_prob(dh, nSteps)) .& (hIdxM .> nSteps)] .-= one(T1);
+        hOutM[(rand(rng, Double, size(hOutM)) .< shock_prob(dh, nSteps)) .& (hEndIdxM .> nSteps)] .-= one(T1);
     end
     return hOutM
 end
@@ -233,16 +233,17 @@ end
 """
 	$(SIGNATURES)
 
-Prob(h on tomorrow's grid | h grid point today).
+Prob(h on tomorrow's grid | h grid point at end of period today).
 """
-function pr_hprime(dh :: HcShockDown, hIdx :: I1) where I1 <: Integer
-    if hIdx == 1
-        idxV = hIdx;
+function pr_hprime(dh :: HcShockDown, hEndIdx :: I1,
+    hStart :: Real, hEnd :: Real, hGridNextV) where I1 <: Integer
+    if hEndIdx == 1
+        idxV = hEndIdx;
         prV = [1.0];
     else
-        maxSteps = I1(min(max_steps(dh), hIdx - one(I1)));
-        idxV = collect((hIdx - maxSteps) : hIdx);
-        # idxV = [hIdx - one(hIdx), hIdx];
+        maxSteps = I1(min(max_steps(dh), hEndIdx - one(I1)));
+        idxV = collect((hEndIdx - maxSteps) : hEndIdx);
+        # idxV = [hEndIdx - one(hEndIdx), hEndIdx];
         prV = [shock_prob(dh, nSteps)  for nSteps in (maxSteps : -1 : 0)];
     end
     return idxV, prV

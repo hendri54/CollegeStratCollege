@@ -40,25 +40,25 @@ function make_h_shock(dh :: HcShockSetNone, iCollege :: Integer)
     return HcShockNone()
 end
 
-function sim_h_shocks(dh :: HcShockNone, uniRandM, hIdxM)
-    return copy(hIdxM)
+function sim_h_shocks(dh :: HcShockNone, hStartM, hIdxEndM, hGridNextV, rng)
+    return copy(hIdxEndM)
 end
 
-function pr_hprime(dh :: HcShockNone, hIdx :: Integer)
-    idxV = [hIdx];
+function pr_hprime(dh :: HcShockNone, hEndIdx :: Integer,
+    hStart :: Real, hEnd :: Real, hGridNextV)
+    idxV = [hEndIdx];
     prV = [1.0];
-    # prV = zeros(Double, hIdx);
-    # prV[hIdx] = 1.0;
     return idxV, prV
 end
 
-"""
-	$(SIGNATURES)
+# """
+# 	$(SIGNATURES)
 
-Given value `vNextV` at start of `t+1` by `h[t+1]`, find value at end of `t` before shocks are realized.
-"""
-value_before_h_shock(dh :: HcShockNone, vNextV :: Vector{Double}) = 
-    copy(vNextV);
+# Given value `vNextV` at start of `t+1` by `h[t+1]`, find value at end of `t` before shocks are realized.
+# """
+# value_before_h_shock(dh :: HcShockNone, hStart :: F1, hEnd :: F1, 
+#     hGridNextV :: AbstractVector{F1},  vNextV :: AbstractVector{F1}) where F1 = 
+#     copy(vNextV);
 
 
 # ----------------

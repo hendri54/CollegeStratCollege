@@ -1,5 +1,14 @@
 ## -------------------------  H shocks
 
+export HcShockSwitches, HcShockSet, HcShock
+export HcShockSwitchesNone, HcShockSetNone, HcShockNone
+export HcShockSwitchesDown, HcShockSetDown, HcShockDown, make_hshock_switches_down, max_steps
+export HcShockSwitchesLoseLearn, HcShockSetLoseLearn, HcShockLoseLearn, make_hshock_switches_lose_learn
+export has_h_shocks, value_before_h_shock, shock_probs, shock_prob, shock_probs_one_college, validate_hshocks
+export make_h_shock_set, make_h_shock, sim_h_shocks, pr_hprime
+export make_test_hshock_switches, make_test_hshock_set, make_test_hshock
+
+
 """
 	$(SIGNATURES)
 
@@ -11,7 +20,7 @@ Each type of `HcShock` has 3 objects:
 """
 
 abstract type HcShockSet <: ModelObject end
-abstract type HcShockSwitches end
+abstract type HcShockSwitches <: ModelSwitches end
 abstract type HcShock end
 
 Base.show(io :: IO,  dh :: HcShockSwitches) = print(io, typeof(dh));
@@ -34,29 +43,38 @@ settings_table(dh :: HcShockSet) = settings_table(dh.switches);
 """
 	$(SIGNATURES)
 
-Given value `vNextV` at start of `t+1` by `h[t+1]`, find value at end of `t` before shocks are realized.
+Given value `vNextV` at start of `t+1` by `h[t+1]`, find value at end of `t` before shocks are realized. Returns scalar.
 """
-function value_before_h_shock(dh :: HcShock, vNextV :: Vector{Double})
-    nh = length(vNextV);
-    vOutV = similar(vNextV);
-    for ih = 1 : nh
-        idxV, prV = pr_hprime(dh, ih);
-        # vOutV[ih] = sum(prV .* vNextV[idxV]);
+function value_before_h_shock(dh :: HcShock, hStart :: F1, hEndIdx :: Integer, 
+    hGridNextV :: AbstractVector{F1},  vNextV :: AbstractVector{F1}) where F1
 
-        vOut = 0.0;
-        for (j, idx) in enumerate(idxV)
-            vOut += prV[j] * vNextV[idx];
-        end
-        vOutV[ih] = vOut;
+    if has_h_shocks(dh)
+        # nh = length(vNextV);
+        hEnd = hGridNextV[hEndIdx];
+        # vOutV = similar(vNextV);
+        # Loop over h grid point at END of today
+        # for ih = 1 : nh
+            idxV, prV = pr_hprime(dh, hEndIdx, hStart, hEnd, hGridNextV);
+
+            vOut = 0.0;
+            for (j, idx) in enumerate(idxV)
+                vOut += prV[j] * vNextV[idx];
+            end
+            # vOutV[ih] = vOut;
+        # end
+    else
+        # vOutV = copy(vNextV);
+        vOut = vNextV[hEndIdx];
     end
     @assert all_greater(vNextV, -1e7)  "Low vNext"
-    @assert all_greater(vOutV, -1e7)  "Low values"
-    return vOutV
+    # @assert all_greater(vOutV, -1e7)  "Low values"
+    return vOut
 end
 
 
 include("h_shocks_none.jl");
 include("h_shocks_down.jl");
+include("h_shocks_lose_learning.jl");
 
 
 ## --------  Testing

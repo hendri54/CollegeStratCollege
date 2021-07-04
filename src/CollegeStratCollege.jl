@@ -1,6 +1,6 @@
 module CollegeStratCollege
 
-using DocStringExtensions, Lazy
+using DocStringExtensions, Lazy, Random
 using CommonLH, EconometricsLH, StructLH, ModelObjectsLH, ModelParams
 using CollegeStratBase
 
@@ -55,12 +55,6 @@ export has_tfp, tfp, set_tfp
 export study_time_per_course, study_time_per_course_no_min
 export hprime, dh, h_path
 
-export HcShockSwitches, HcShockSet, HcShock
-export HcShockSwitchesNone, HcShockSetNone, HcShockNone
-export HcShockSwitchesDown, HcShockSetDown, HcShockDown, make_hshock_switches_down, max_steps
-export has_h_shocks, value_before_h_shock, shock_probs, shock_prob, shock_probs_one_college, validate_hshocks
-export make_h_shock_set, make_h_shock, sim_h_shocks, pr_hprime
-export make_test_hshock_switches, make_test_hshock_set, make_test_hshock
 
 export AbstractLearnSwitches, AbstractLearningSet, AbstractLearning
 export LearnCollegeOnlySwitches, LearnCollegeOnlySet, LearnCollegeOnly
