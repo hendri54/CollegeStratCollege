@@ -68,7 +68,7 @@ function value_before_h_shock(dh :: HcShock, hStart :: F1, hEndIdx :: Integer,
     end
     @assert all_greater(vNextV, -1e7)  "Low vNext"
     # @assert all_greater(vOutV, -1e7)  "Low values"
-    return vOut
+    return Double(vOut)
 end
 
 

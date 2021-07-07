@@ -67,7 +67,7 @@ end
 
 function validate_hshocks(switches :: HcShocksSwitchesLoseLearn)
     isValid = true;
-    isValid = isValid  &&  all(0.0 .<= switches.fracLostV .< 0.9);
+    isValid = isValid  &&  all(0.0 .<= switches.fracLostV .< 1.0);
     isValid = isValid  &&  (size(switches.fracLostV) == (switches.nColleges, ));
     return isValid
 end
@@ -79,6 +79,7 @@ function make_h_shock_set(objId, switches :: HcShocksSwitchesLoseLearn)
     return HcShockSetLoseLearn(objId, switches, pProb)
 end
 
+# update description ++++++
 function init_shock_probs(objId :: ObjectId, switches :: HcShocksSwitchesLoseLearn)    
     nc = n_colleges(switches);
     dxV = fill(0.2, nc);
@@ -165,8 +166,23 @@ function round_to_grid(xM :: Array{T}, gridV :: AbstractVector{T}) where T <: Re
 end
 
 function round_to_grid(x :: F1, gridV :: AbstractVector{F2}) where {F1 <: Real, F2 <: Real}
-    _, idx = findmin(abs.(gridV .- x));
+    # _, idx = findmin(abs.(gridV .- x));
+    _, idx = fndmin(z -> abs(z - x),  gridV)
     return idx
+end
+
+# findmin for functions.
+function fndmin(f, xV)
+    fMin = f(first(xV));
+    jMin = 1;
+    for (j, x) in enumerate(xV)
+        fVal = f(x);
+        if fVal < fMin
+            fMin = fVal;
+            jMin = j;
+        end
+    end
+    return fMin, jMin
 end
 
 
@@ -179,11 +195,14 @@ Prob(h on tomorrow's grid | h grid point today). Mainly for testing.
 function pr_hprime(dh :: HcShockLoseLearn, hEndIdx :: I1, 
     hStart :: Real, hEnd :: Real, hGridNextV) where I1 <: Integer
 
-    prV = [shock_prob(dh), 1.0 - shock_prob(dh)];
-    idxV = [hprime_idx(dh, hStart, hEnd, hGridNextV; withShock = hasShock)
-        for hasShock in (true, false)];
+    prV = (shock_prob(dh), 1.0 - shock_prob(dh));
+    idxV = (hprime_idx(dh, hStart, hEnd, hGridNextV; withShock = true), 
+        hprime_idx(dh, hStart, hEnd, hGridNextV; withShock = false));
+        # for hasShock in (true, false)];
     return idxV, prV
 end
+
+# function time_pr_hprime
 
 
 # -----------------
