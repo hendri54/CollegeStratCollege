@@ -192,11 +192,15 @@ function make_hc_prod_set(objId :: ObjectId, nc :: Integer,
 end
 
 
-function init_tfp(objId :: ObjectId, nc :: Integer)
-    tfp0 = 0.2;
+# TFP by college. 
+function init_tfp(objId :: ObjectId, nc :: Integer;
+    tfp0 = 0.2, tfp0Lb = 0.02, tfp0Ub = 4.0)
+    # First college
+    # tfp0 = 0.2;
     pTfp0 = Param(:x0, ldescription(:hTfpOne), lsymbol(:hTfpOne),
-        tfp0, tfp0, tfp0 * 0.1, tfp0 * 10.0, true);
+        tfp0, tfp0, tfp0Lb, tfp0Ub, true);
 
+    # Increments for other colleges.
     dTfpV = fill(0.5, nc - 1);
     pTfpGrad = Param(:dxV, ldescription(:hTfpGrad), lsymbol(:hTfpGrad), 
         dTfpV, dTfpV, dTfpV .* 0.1, dTfpV .* 10, true);

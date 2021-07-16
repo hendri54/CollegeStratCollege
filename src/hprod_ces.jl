@@ -57,6 +57,10 @@ Base.@kwdef mutable struct HcProdCesSwitches{T <: AbstractHCesAggr} <: AbstractH
     calAScale :: Bool = true
     substElast :: Double = 0.8
     calSubstElast :: Bool = true
+    # TFP for first college
+    tfp0 :: Double = 1.0
+    tfp0Lb :: Double = 0.02
+    tfp0Ub :: Double = 5.0
 end
 
 
@@ -236,7 +240,8 @@ function make_hc_prod_set(objId :: ObjectId, nc :: Integer,
     @assert validate_hprod(switches);
 
     pTimePerCourse = init_time_per_course();
-    pTfp = init_tfp(objId, nc);
+    pTfp = init_tfp(objId, nc; 
+        tfp0 = switches.tfp0, tfp0Lb = switches.tfp0Lb, tfp0Ub = switches.tfp0Ub);
 
     timeExp = switches.timeExp;
     pTimeExp = Param(:timeExp,  ldescription(:hTimeExp), lsymbol(:hTimeExp),  
